@@ -1,0 +1,12 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch
+torchvision
+Pillow
+PyYAML
+tqdm
+
+captcha
+fastapi
+uvicorn
+onnxruntime
+opencv-python

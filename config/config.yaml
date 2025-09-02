@@ -1,0 +1,62 @@
+data:
+  train_dir: "dataset/train"
+  val_dir: "dataset/val"
+  image_size: [70, 200]
+  batch_size: 64
+  num_workers: 0
+
+model:
+  type: "crnn"
+  input_channels: 3
+  hidden_channels: [64, 128, 256, 512]
+  rnn_hidden_size: 256
+  dropout: 0.1
+  batch_first: true
+  use_quantization: true
+  export_format: "onnx"
+  # Channel attention (SE) settings
+  use_se: true           # 是否启用SE注意力，默认关闭以兼容旧模型
+  se_reduction: 16        # SE通道压缩比，典型为8或16
+
+training:
+  epochs: 1000
+  learning_rate: 0.001
+  device: "auto"
+  save_dir: "checkpoints"
+  batch_size: 32
+  # 每 N 个 epoch 在测试集上评估一次
+  test_interval: 5
+
+captcha:
+  length: 6
+#  charset: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$?&^="
+  charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+inference:
+  batch_size: 1
+  num_threads: 4
+  use_mkldnn: true 
+
+# 可配置的图像预处理参数（与 EnhancedCaptchaDataset 对齐）
+preprocessing:
+  use_otsu: true
+  invert_back: true
+  hough_remove_lines:
+    enable: false
+    threshold: 1
+    minLineLength: 74
+    maxLineGap: 9
+    thickness: 2
+  morph_open:
+    enable: false
+    ksize: 1
+    iterations: 1
+  morph_close:
+    enable: false
+    ksize: 1
+    iterations: 1
+  cc_filter:
+    enable: false
+    min_area: 0
+    min_h: 0
+    min_w: 5

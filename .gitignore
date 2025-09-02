@@ -1,0 +1,56 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing/Type checking caches
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Checkpoints & model artifacts
+checkpoints/
+*.pth
+*.pt
+*.onnx
+
+# Evaluation/analysis outputs
+errors_eval/
+analysis_plots/
+scripts/analysis_plots/
+
+# Datasets (large, generated)
+dataset/
+# If you want to keep a note file, uncomment the next line and add one
+#!dataset/README.md
+
+# Misc
+*.tmp
+*.bak
+~$*

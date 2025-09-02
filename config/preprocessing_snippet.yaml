@@ -1,0 +1,21 @@
+use_otsu: false
+invert_back: true
+hough_remove_lines:
+  enable: false
+  threshold: 1
+  minLineLength: 74
+  maxLineGap: 9
+  thickness: 2
+morph_open:
+  enable: false
+  ksize: 1
+  iterations: 1
+morph_close:
+  enable: false
+  ksize: 1
+  iterations: 1
+cc_filter:
+  enable: false
+  min_area: 0
+  min_h: 0
+  min_w: 5
