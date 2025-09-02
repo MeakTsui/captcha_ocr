@@ -147,13 +147,23 @@ class Trainer:
         )
         
         # 添加学习率调度器
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer,
-            mode='min',
-            factor=0.5,
-            patience=5,
-            verbose=True
-        )
+        # 添加学习率调度器（兼容旧版 PyTorch 无 verbose 参数）
+        try:
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer,
+                mode='min',
+                factor=0.5,
+                patience=5,
+                verbose=True
+            )
+        except TypeError:
+            # 旧版本不支持 verbose 参数
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer,
+                mode='min',
+                factor=0.5,
+                patience=5
+            )
         
         # 创建模型保存目录
         self.checkpoint_dir = Path(self.config['training']['save_dir'])
