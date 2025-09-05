@@ -34,7 +34,7 @@ captcha:
 
 inference:
   batch_size: 1
-  num_threads: 4
+  num_threads: 3
   use_mkldnn: true
   providers: ["CPUExecutionProvider"]
   static_axes: true
