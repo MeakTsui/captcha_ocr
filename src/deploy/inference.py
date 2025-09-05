@@ -1,7 +1,6 @@
 import onnxruntime as ort
 import numpy as np
 from PIL import Image
-import cv2
 
 class CaptchaPredictor:
     def __init__(self, model_path, config):
@@ -23,27 +22,24 @@ class CaptchaPredictor:
         self.config = config
         
     def preprocess(self, image):
-        # 图像预处理
+        # 图像预处理：与 eval_checkpoints.py 一致，仅 resize + 标准化
         if isinstance(image, str):
             image = Image.open(image).convert('RGB')
-        # 同步 EnhancedCaptchaDataset 的预处理：灰度 -> Otsu 二值化(取反) -> 再反相 -> 转 RGB
-        img_array = np.array(image)
-        if len(img_array.shape) == 3:
-            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-        _, binary = cv2.threshold(img_array, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        processed = cv2.bitwise_not(binary)
-        processed_image = Image.fromarray(processed).convert('RGB')
+        else:
+            # 确保是 RGB
+            if not isinstance(image, Image.Image):
+                image = Image.fromarray(np.array(image))
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
 
         # 训练时 torchvision.Resize 接收 [H, W]，而 PIL.resize 需要 (W, H)
         h, w = self.config['data']['image_size']
-        processed_image = processed_image.resize((w, h))
+        processed_image = image.resize((w, h))
 
-        image = np.array(processed_image).transpose(2, 0, 1)
-        image = image / 255.0
-        image = (image - 0.5) / 0.5
-        arr = image[np.newaxis, :].astype(np.float32)
-        # 可选断言：确保尺寸为 (1, C, H, W) = (1, 3, 70, 200)
-        # 关闭或修改请自行注释
+        arr = np.array(processed_image).transpose(2, 0, 1).astype(np.float32) / 255.0
+        arr = (arr - 0.5) / 0.5
+        arr = arr[np.newaxis, :]
+        # 可选断言：确保尺寸为 (1, C, H, W)
         # assert arr.shape[2:] == (h, w), f"preprocess got shape {arr.shape}, expected (H,W)=({h},{w})"
         return arr
         
