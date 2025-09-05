@@ -169,7 +169,7 @@ def _apply_preprocess_from_cfg(img_rgb: Image.Image, pre_cfg: Dict[str, Any] | N
 
 def preprocess_image(image_path: str, image_size_hw, pre_cfg: Dict[str, Any] | None):
     img = Image.open(image_path).convert('RGB')
-    img = _apply_preprocess_from_cfg(img, pre_cfg)
+    # img = _apply_preprocess_from_cfg(img, pre_cfg)
     h, w = image_size_hw
     img = img.resize((w, h))
 

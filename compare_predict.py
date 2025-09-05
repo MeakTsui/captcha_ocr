@@ -197,7 +197,8 @@ def preview_preprocessing(image_path: str, config: dict, show: bool = False, sav
     Does not affect prediction pipeline.
     """
     orig = Image.open(image_path).convert('RGB')
-    proc = _apply_preprocess_from_cfg(orig, config.get('preprocessing', {}))
+    # proc = _apply_preprocess_from_cfg(orig, config.get('preprocessing', {}))
+    proc = orig
 
     # Make same height
     h = max(orig.height, proc.height)
