@@ -133,30 +133,31 @@ class ResNetCaptcha(nn.Module):
     def __init__(self, config):
         super(ResNetCaptcha, self).__init__()
         
+        # 从配置读取是否使用精简版（更低延迟）
+        model_cfg = config.get('model', {})
+        tiny = bool(model_cfg.get('tiny', True))
+        # 通道与每层 block 数配置
+        if tiny:
+            c1, c2, c3 = 32, 64, 128
+            blocks = (1, 1, 1)
+        else:
+            c1, c2, c3 = 64, 128, 256
+            blocks = (2, 2, 2)
+        
         # 初始层
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(64)
+        self.conv1 = nn.Conv2d(3, c1, kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(c1)
         
-        # ResNet层
-        self.layer1 = self._make_layer(64, 64, 2)
-        self.layer2 = self._make_layer(64, 128, 2, stride=2)
-        self.layer3 = self._make_layer(128, 256, 2, stride=2)
-        
-        # 注意力机制
-        self.attention = nn.Sequential(
-            nn.Conv2d(256, 1, kernel_size=1),
-            nn.Sigmoid()
-        )
+        # ResNet层（根据 blocks 配置）
+        self.layer1 = self._make_layer(c1, c1, blocks[0])
+        self.layer2 = self._make_layer(c1, c2, blocks[1], stride=2)
+        self.layer3 = self._make_layer(c2, c3, blocks[2], stride=2)
         
         # 输出层
         self.num_classes = len(config['captcha']['charset'])
         self.captcha_length = config['captcha']['length']
-        self.use_se = config.get('model', {}).get('use_se', False)
-        self.se_reduction = int(config.get('model', {}).get('se_reduction', 16))
-        if self.use_se:
-            self.se = SEBlock(256, self.se_reduction)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(256, self.captcha_length * self.num_classes)
+        self.fc = nn.Linear(c3, self.captcha_length * self.num_classes)
         
     def _make_layer(self, in_channels, out_channels, num_blocks, stride=1):
         layers = []
@@ -171,12 +172,6 @@ class ResNetCaptcha(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        if hasattr(self, 'se'):
-            x = self.se(x)
-        
-        # 注意力加权
-        att = self.attention(x)
-        x = x * att
         
         # 全局池化
         x = self.avgpool(x)

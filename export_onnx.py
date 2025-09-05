@@ -47,6 +47,7 @@ def export_onnx(model: torch.nn.Module, config: dict, out_path: str, opset: int 
 
     os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
 
+    # 静态导出：固定 batch=1，无 dynamic_axes
     torch.onnx.export(
         model,
         dummy,
@@ -56,13 +57,12 @@ def export_onnx(model: torch.nn.Module, config: dict, out_path: str, opset: int 
         do_constant_folding=True,
         input_names=['input'],
         output_names=['output'],
-        dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}},
     )
     print(f"ONNX model exported to: {out_path}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Export captcha OCR model to ONNX')
+    parser = argparse.ArgumentParser(description='Export captcha OCR model to ONNX (static)')
     parser.add_argument('--config', default='config/config.yaml', help='Path to config.yaml')
     parser.add_argument('--checkpoint', default='checkpoints/best_model.pth', help='Path to .pth checkpoint (optional)')
     parser.add_argument('--out', default='checkpoints/best_model.onnx', help='Output ONNX path')

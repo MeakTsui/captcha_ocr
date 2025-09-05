@@ -21,7 +21,7 @@ model:
 training:
   epochs: 1000
   learning_rate: 0.001
-  device: "auto"
+  device: "cpu"
   save_dir: "checkpoints"
   batch_size: 32
   # 每 N 个 epoch 在测试集上评估一次

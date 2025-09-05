@@ -6,18 +6,21 @@ class CaptchaPredictor:
     def __init__(self, model_path, config):
         # 优化的ONNX运行时设置
         sess_options = ort.SessionOptions()
-        sess_options.intra_op_num_threads = config['inference']['num_threads']
+        sess_options.intra_op_num_threads = config['inference'].get('num_threads', 4)
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        # 小 batch 单线程执行模式通常具备更低调度开销
+        sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        # 对于单样本推理，通常启用 mem pattern 有利
+        sess_options.enable_mem_pattern = True
+        sess_options.enable_cpu_mem_arena = True
         
-        # 如果CPU支持AVX2/AVX512，启用MKL-DNN
-        if config['inference']['use_mkldnn']:
-            sess_options.enable_cpu_mem_arena = True
-            sess_options.enable_mem_pattern = True
-            
+        # Provider 配置（Mac 下一般使用 CPUExecutionProvider）
+        providers = config['inference'].get('providers', ['CPUExecutionProvider'])
+        
         self.session = ort.InferenceSession(
-            model_path, 
+            model_path,
             sess_options,
-            providers=['CPUExecutionProvider']
+            providers=providers
         )
         self.config = config
         
@@ -39,8 +42,6 @@ class CaptchaPredictor:
         arr = np.array(processed_image).transpose(2, 0, 1).astype(np.float32) / 255.0
         arr = (arr - 0.5) / 0.5
         arr = arr[np.newaxis, :]
-        # 可选断言：确保尺寸为 (1, C, H, W)
-        # assert arr.shape[2:] == (h, w), f"preprocess got shape {arr.shape}, expected (H,W)=({h},{w})"
         return arr
         
     def predict(self, image):
@@ -49,7 +50,7 @@ class CaptchaPredictor:
         
         # 推理
         output = self.session.run(
-            None, 
+            None,
             {'input': input_data}
         )[0]
         
@@ -59,4 +60,4 @@ class CaptchaPredictor:
             idx = output[0, i].argmax()
             pred_chars.append(self.config['captcha']['charset'][idx])
             
-        return ''.join(pred_chars) 
+        return ''.join(pred_chars)

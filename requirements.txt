@@ -9,4 +9,5 @@ captcha
 fastapi
 uvicorn
 onnxruntime
+onnx
 opencv-python
